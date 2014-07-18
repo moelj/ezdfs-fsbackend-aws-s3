@@ -144,21 +144,25 @@ class eZDFSFileHandlerDFSAmazon implements eZDFSFileHandlerDFSBackendInterface, 
      */
     public function delete( $filePath )
     {
-        try
+        foreach ( (array)$filePath as $filePath )
         {
-            $this->s3client->deleteObject(
-                array(
-                    'Bucket' => $this->bucket,
-                    'Key' => $filePath,
-                )
-            );
-            return true;
+            try
+            {
+                $this->s3client->deleteObject(
+                    array(
+                        'Bucket' => $this->bucket,
+                        'Key' => $filePath,
+                    )
+                );
+            }
+            catch ( S3Exception $e )
+            {
+                $error = true;
+                eZDebug::writeError( $e->getMessage(), __METHOD__ );
+            }
         }
-        catch ( S3Exception $e )
-        {
-            eZDebug::writeError( $e->getMessage(), __METHOD__ );
-            return false;
-        }
+
+        return !isset( $error );
     }
 
     /**
